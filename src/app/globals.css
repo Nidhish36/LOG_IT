@@ -1,0 +1,87 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&family=JetBrains+Mono:wght@400;600;700;800&display=swap');
+@import "tailwindcss";
+
+:root {
+    --bg-color: #050505;
+    --text-color: #ffffff;
+    --grid-dot: rgba(255, 255, 255, 0.12);
+    --box-shadow: 4px 4px 0px 0px rgba(255, 255, 255, 0.2);
+    --box-shadow-hover: 6px 6px 0px 0px rgba(255, 255, 255, 0.4);
+    --border-c: rgba(255, 255, 255, 0.2);
+}
+
+html.light {
+    --bg-color: #fcfcfc;
+    --text-color: #000000;
+    --grid-dot: rgba(0, 0, 0, 0.12);
+    --box-shadow: 4px 4px 0px 0px rgba(0, 0, 0, 0.9);
+    --box-shadow-hover: 6px 6px 0px 0px rgba(0, 0, 0, 1);
+    --border-c: rgba(0, 0, 0, 0.85);
+}
+
+/* Custom cursor hide default on desktop for immersion */
+@media (min-width: 768px) {
+
+    body,
+    button,
+    a,
+    input,
+    textarea {
+        cursor: none !important;
+    }
+}
+
+body {
+    color: var(--text-color);
+    background-color: var(--bg-color);
+    background-image: radial-gradient(var(--grid-dot) 1px, transparent 1px);
+    background-size: 20px 20px;
+    font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+    min-height: 100vh;
+    transition: background-color 0.15s ease, color 0.15s ease;
+}
+
+.font-mono-sharp {
+    font-family: 'JetBrains Mono', monospace;
+}
+
+/* Sharp Neo-Brutalist / Nothing Box Shadows */
+.sharp-card {
+    border: 1px solid var(--border-c);
+    box-shadow: var(--box-shadow);
+    transition: all 0.15s ease-in-out;
+}
+
+.sharp-card:hover {
+    transform: translate(-2px, -2px);
+    box-shadow: var(--box-shadow-hover);
+}
+
+.sharp-btn {
+    border: 1px solid var(--border-c);
+    box-shadow: var(--box-shadow);
+    transition: all 0.1s ease;
+}
+
+.sharp-btn:hover {
+    transform: translate(-1px, -1px);
+    box-shadow: var(--box-shadow-hover);
+}
+
+.sharp-btn:active {
+    transform: translate(2px, 2px);
+    box-shadow: 0px 0px 0px 0px transparent;
+}
+
+/* Scrollbar */
+::-webkit-scrollbar {
+    width: 6px;
+}
+
+::-webkit-scrollbar-track {
+    background: transparent;
+}
+
+::-webkit-scrollbar-thumb {
+    background: rgba(128, 128, 128, 0.4);
+}

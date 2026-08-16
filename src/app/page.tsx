@@ -8,7 +8,7 @@ export const dynamic = 'force-dynamic';
 
 export default async function DashboardPage() {
     let user = null;
-    let rawUserMedia = [];
+    let rawUserMedia: any[] = [];
 
     try {
         const supabase = await createClient();

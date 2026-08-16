@@ -13,16 +13,15 @@ export default function AuthPage() {
     const [error, setError] = useState<string | null>(null);
     const [loading, setLoading] = useState(false);
 
-    const supabase = createClient();
-
     async function handleAuth(e: React.FormEvent) {
         e.preventDefault();
         setLoading(true);
         setError(null);
 
         try {
+            const supabase = createClient();
             if (isSignUp) {
-                const { data, error: signUpError } = await supabase.auth.signUp({
+                const { error: signUpError } = await supabase.auth.signUp({
                     email,
                     password,
                 });
@@ -30,7 +29,7 @@ export default function AuthPage() {
                 router.push('/');
                 router.refresh();
             } else {
-                const { data, error: signInError } = await supabase.auth.signInWithPassword({
+                const { error: signInError } = await supabase.auth.signInWithPassword({
                     email,
                     password,
                 });

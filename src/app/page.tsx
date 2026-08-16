@@ -4,9 +4,53 @@ import { MediaCard } from '@/components/media/MediaCard';
 import Link from 'next/link';
 import { Film, Tv, Sparkles, Clock, Star, PlusCircle, ArrowUpRight } from 'lucide-react';
 
+export const dynamic = 'force-dynamic';
+
 export default async function DashboardPage() {
-    const supabase = await createClient();
-    const { data: { user } } = await supabase.auth.getUser();
+    let user = null;
+    let rawUserMedia = [];
+
+    try {
+        const supabase = await createClient();
+        const { data: authData } = await supabase.auth.getUser();
+        user = authData?.user || null;
+
+        if (user) {
+            const { data } = await supabase
+                .from('user_media')
+                .select(`
+          id,
+          user_id,
+          media_id,
+          status,
+          rating,
+          review,
+          progress,
+          is_favorite,
+          watched_at,
+          created_at,
+          updated_at,
+          media:media_id (
+            id,
+            external_id,
+            source,
+            type,
+            title,
+            poster_url,
+            backdrop_url,
+            description,
+            release_date,
+            runtime,
+            total_episodes,
+            genres
+          )
+        `)
+                .order('updated_at', { ascending: false });
+            rawUserMedia = data || [];
+        }
+    } catch (err) {
+        console.error('Dashboard load error:', err);
+    }
 
     if (!user) {
         return (
@@ -30,37 +74,6 @@ export default async function DashboardPage() {
         );
     }
 
-    const { data: rawUserMedia } = await supabase
-        .from('user_media')
-        .select(`
-      id,
-      user_id,
-      media_id,
-      status,
-      rating,
-      review,
-      progress,
-      is_favorite,
-      watched_at,
-      created_at,
-      updated_at,
-      media:media_id (
-        id,
-        external_id,
-        source,
-        type,
-        title,
-        poster_url,
-        backdrop_url,
-        description,
-        release_date,
-        runtime,
-        total_episodes,
-        genres
-      )
-    `)
-        .order('updated_at', { ascending: false });
-
     const records: UserMediaRecord[] = (rawUserMedia || []).map((item: any) => ({
         id: item.id,
         userId: item.user_id,
@@ -74,18 +87,18 @@ export default async function DashboardPage() {
         createdAt: item.created_at,
         updatedAt: item.updated_at,
         media: {
-            id: item.media.id,
-            externalId: item.media.external_id,
-            source: item.media.source,
-            type: item.media.type,
-            title: item.media.title,
-            posterUrl: item.media.poster_url,
-            backdropUrl: item.media.backdrop_url,
-            description: item.media.description,
-            releaseDate: item.media.release_date,
-            runtime: item.media.runtime || 0,
-            totalEpisodes: item.media.total_episodes,
-            genres: item.media.genres || [],
+            id: item.media?.id || '',
+            externalId: item.media?.external_id || '',
+            source: item.media?.source || 'omdb',
+            type: item.media?.type || 'movie',
+            title: item.media?.title || 'Untitled',
+            posterUrl: item.media?.poster_url || null,
+            backdropUrl: item.media?.backdrop_url || null,
+            description: item.media?.description || null,
+            releaseDate: item.media?.release_date || null,
+            runtime: item.media?.runtime || 0,
+            totalEpisodes: item.media?.total_episodes,
+            genres: item.media?.genres || [],
         },
     }));
 
@@ -108,7 +121,7 @@ export default async function DashboardPage() {
 
     return (
         <main className="mx-auto max-w-7xl px-4 py-8 sm:px-6">
-            {/* Interactive Sharp Rectangular Tiles */}
+            {/* Interactive Rectangular Tiles */}
             <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-6 mb-12">
                 <Link
                     href="/library?type=movie&status=watched"

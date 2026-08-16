@@ -2,6 +2,7 @@ import { createClient } from '@/lib/supabase/server';
 import { UserMediaRecord } from '@/types/media';
 import { MediaCard } from '@/components/media/MediaCard';
 import Link from 'next/link';
+export const dynamic = 'force-dynamic';
 
 export default async function LibraryPage({
     searchParams,
@@ -119,8 +120,8 @@ export default async function LibraryPage({
                                 key={s}
                                 href={`/library?type=${typeFilter}&status=${s}&sort=${sortBy}`}
                                 className={`rounded-full px-3 py-1 font-bold uppercase text-[10px] tracking-wider transition ${statusFilter === s
-                                        ? 'bg-black text-white dark:bg-white dark:text-black'
-                                        : 'text-zinc-500 hover:text-black dark:hover:text-white'
+                                    ? 'bg-black text-white dark:bg-white dark:text-black'
+                                    : 'text-zinc-500 hover:text-black dark:hover:text-white'
                                     }`}
                             >
                                 {s}
@@ -140,8 +141,8 @@ export default async function LibraryPage({
                                 key={t.id}
                                 href={`/library?type=${t.id}&status=${statusFilter}&sort=${sortBy}`}
                                 className={`rounded-full px-3 py-1 font-bold uppercase text-[10px] tracking-wider transition ${typeFilter === t.id
-                                        ? 'bg-black text-white dark:bg-white dark:text-black'
-                                        : 'text-zinc-500 hover:text-black dark:hover:text-white'
+                                    ? 'bg-black text-white dark:bg-white dark:text-black'
+                                    : 'text-zinc-500 hover:text-black dark:hover:text-white'
                                     }`}
                             >
                                 {t.label}

@@ -1,7 +1,7 @@
 import { createClient } from '@/lib/supabase/server';
 import Link from 'next/link';
 import { Film, Tv, Sparkles, Star, Clock, Download, BarChart2 } from 'lucide-react';
-
+export const dynamic = 'force-dynamic';
 export default async function StatsPage() {
     const supabase = await createClient();
     const { data: { user } } = await supabase.auth.getUser();

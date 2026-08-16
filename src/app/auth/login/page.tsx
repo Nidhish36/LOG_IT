@@ -1,7 +1,6 @@
 'use client';
 
 import React, { useState } from 'react';
-import { createClient } from '@/lib/supabase/client';
 import { Loader2, Triangle } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 
@@ -19,24 +18,25 @@ export default function AuthPage() {
         setError(null);
 
         try {
-            const supabase = createClient();
-            if (isSignUp) {
-                const { error: signUpError } = await supabase.auth.signUp({
+            const res = await fetch('/api/auth', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
                     email,
                     password,
-                });
-                if (signUpError) throw signUpError;
-                router.push('/');
-                router.refresh();
-            } else {
-                const { error: signInError } = await supabase.auth.signInWithPassword({
-                    email,
-                    password,
-                });
-                if (signInError) throw signInError;
-                router.push('/');
-                router.refresh();
+                    action: isSignUp ? 'signup' : 'login',
+                }),
+            });
+
+            const data = await res.json();
+
+            if (!res.ok || data.error) {
+                throw new Error(data.error || 'Authentication failed');
             }
+
+            // Success! Refresh and navigate to home
+            router.push('/');
+            router.refresh();
         } catch (err: any) {
             setError(err.message || 'Authentication failed');
             setLoading(false);

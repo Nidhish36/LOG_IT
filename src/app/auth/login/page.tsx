@@ -1,25 +1,45 @@
 'use client';
 
-import { useState } from 'react';
-import { login, signup } from '@/actions/auth';
+import React, { useState } from 'react';
+import { createClient } from '@/lib/supabase/client';
 import { Loader2, Triangle } from 'lucide-react';
+import { useRouter } from 'next/navigation';
 
 export default function AuthPage() {
+    const router = useRouter();
     const [isSignUp, setIsSignUp] = useState(false);
+    const [email, setEmail] = useState('');
+    const [password, setPassword] = useState('');
     const [error, setError] = useState<string | null>(null);
     const [loading, setLoading] = useState(false);
 
-    async function handleSubmit(formData: FormData) {
+    const supabase = createClient();
+
+    async function handleAuth(e: React.FormEvent) {
+        e.preventDefault();
         setLoading(true);
         setError(null);
+
         try {
-            const res = isSignUp ? await signup(formData) : await login(formData);
-            if (res?.error) {
-                setError(res.error);
+            if (isSignUp) {
+                const { data, error: signUpError } = await supabase.auth.signUp({
+                    email,
+                    password,
+                });
+                if (signUpError) throw signUpError;
+                router.push('/');
+                router.refresh();
+            } else {
+                const { data, error: signInError } = await supabase.auth.signInWithPassword({
+                    email,
+                    password,
+                });
+                if (signInError) throw signInError;
+                router.push('/');
+                router.refresh();
             }
         } catch (err: any) {
-            setError(err.message || 'An error occurred');
-        } finally {
+            setError(err.message || 'Authentication failed');
             setLoading(false);
         }
     }
@@ -27,7 +47,7 @@ export default function AuthPage() {
     return (
         <div className="flex min-h-[80vh] items-center justify-center px-4">
             <div className="sharp-card w-full max-w-md bg-white dark:bg-black p-8">
-                {/* Header with Sharp Geometric Triangle Icon */}
+                {/* Triangle Header */}
                 <div className="flex flex-col items-center text-center mb-8">
                     <div className="flex h-12 w-12 items-center justify-center border-2 border-black dark:border-white mb-4 bg-black/5 dark:bg-white/5">
                         <Triangle className="h-5 w-5 fill-black text-black dark:fill-white dark:text-white" />
@@ -46,7 +66,7 @@ export default function AuthPage() {
                     </div>
                 )}
 
-                <form action={handleSubmit} className="space-y-5 font-mono-sharp">
+                <form onSubmit={handleAuth} className="space-y-5 font-mono-sharp">
                     <div>
                         <label className="block text-[11px] font-bold uppercase tracking-wider text-zinc-600 dark:text-zinc-400 mb-1">
                             EMAIL_ADDRESS
@@ -55,6 +75,8 @@ export default function AuthPage() {
                             name="email"
                             type="email"
                             required
+                            value={email}
+                            onChange={(e) => setEmail(e.target.value)}
                             placeholder="user@domain.com"
                             className="w-full border border-black/20 dark:border-white/20 bg-black/5 dark:bg-zinc-950 px-4 py-2.5 text-xs text-black dark:text-white placeholder-zinc-500 focus:border-black dark:focus:border-white focus:outline-none"
                         />
@@ -69,6 +91,8 @@ export default function AuthPage() {
                             type="password"
                             required
                             minLength={6}
+                            value={password}
+                            onChange={(e) => setPassword(e.target.value)}
                             placeholder="••••••••"
                             className="w-full border border-black/20 dark:border-white/20 bg-black/5 dark:bg-zinc-950 px-4 py-2.5 text-xs text-black dark:text-white placeholder-zinc-500 focus:border-black dark:focus:border-white focus:outline-none"
                         />

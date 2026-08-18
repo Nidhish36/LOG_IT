@@ -4,71 +4,109 @@ import { createClient } from '@/lib/supabase/server';
 import { revalidatePath } from 'next/cache';
 import { UnifiedMediaItem, WatchStatus } from '@/types/media';
 
-export interface SaveMediaInput {
-    media: UnifiedMediaItem;
-    status: WatchStatus;
-    rating?: number | null;
-    review?: string | null;
-    progress?: number;
-    watchedAt?: string | null;
-    isFavorite?: boolean;
-}
-
-export async function saveUserMedia(input: SaveMediaInput) {
+export async function upsertUserMedia(
+    media: UnifiedMediaItem,
+    details: {
+        status: WatchStatus;
+        rating?: number | null;
+        review?: string;
+        progress?: number;
+        isFavorite?: boolean;
+        watchedAt?: string;
+    }
+) {
     const supabase = await createClient();
-    const { data: { user }, error: authError } = await supabase.auth.getUser();
+    const { data: { user } } = await supabase.auth.getUser();
 
-    if (authError || !user) {
-        throw new Error('You must be logged in to save items to your library.');
+    if (!user) {
+        return { error: 'Authentication required' };
     }
 
-    // 1. Cache media details in public.media
-    const { data: mediaRecord, error: mediaError } = await supabase
-        .from('media')
-        .upsert(
-            {
-                external_id: input.media.externalId,
-                source: input.media.source,
-                type: input.media.type,
-                title: input.media.title,
-                poster_url: input.media.posterUrl,
-                backdrop_url: input.media.backdropUrl,
-                description: input.media.description,
-                release_date: input.media.releaseDate,
-                runtime: input.media.runtime || 0,
-                total_episodes: input.media.totalEpisodes || 0,
-                genres: input.media.genres || [],
-            },
-            { onConflict: 'external_id,source' }
-        )
-        .select('id')
-        .single();
+    try {
+        // 1. Ensure media item exists in 'media' table cache
+        const { data: existingMedia, error: selectErr } = await supabase
+            .from('media')
+            .select('id')
+            .eq('external_id', media.externalId)
+            .eq('source', media.source)
+            .maybeSingle();
 
-    if (mediaError || !mediaRecord) {
-        console.error('Media upsert error:', mediaError);
-        throw new Error('Failed to cache media item.');
-    }
+        let mediaId = existingMedia?.id;
 
-    // 2. Upsert user's tracking entry
-    const { error: userMediaError } = await supabase
-        .from('user_media')
-        .upsert(
+        if (!mediaId) {
+            const { data: insertedMedia, error: insertErr } = await supabase
+                .from('media')
+                .insert({
+                    external_id: media.externalId,
+                    source: media.source,
+                    type: media.type,
+                    title: media.title,
+                    poster_url: media.posterUrl,
+                    backdrop_url: media.backdropUrl,
+                    description: media.description,
+                    release_date: media.releaseDate,
+                    runtime: media.runtime || 0,
+                    total_episodes: media.totalEpisodes || 0,
+                    genres: media.genres || [],
+                })
+                .select('id')
+                .single();
+
+            if (insertErr) {
+                console.error('Error caching media:', insertErr);
+                return { error: 'Failed to register media item in cache' };
+            }
+            mediaId = insertedMedia.id;
+        }
+
+        // 2. Upsert user media tracking record
+        const { error: userMediaErr } = await supabase.from('user_media').upsert(
             {
                 user_id: user.id,
-                media_id: mediaRecord.id,
-                status: input.status,
-                rating: input.rating || null,
-                review: input.review || null,
-                progress: input.progress || 0,
-                watched_at: input.status === 'watched' ? (input.watchedAt || new Date().toISOString().split('T')[0]) : null,
-                is_favorite: input.isFavorite || false,
+                media_id: mediaId,
+                status: details.status,
+                rating: details.rating ?? null,
+                review: details.review ?? null,
+                progress: details.progress ?? 0,
+                is_favorite: details.isFavorite ?? false,
+                watched_at: details.status === 'watched' ? (details.watchedAt || new Date().toISOString()) : null,
+                updated_at: new Date().toISOString(),
             },
             { onConflict: 'user_id,media_id' }
         );
 
-    if (userMediaError) {
-        console.error('User media upsert error:', userMediaError);
-        throw new Error('Failed to update library.');
+        if (userMediaErr) {
+            console.error('Error tracking user media:', userMediaErr);
+            return { error: userMediaErr.message };
+        }
+
+        revalidatePath('/');
+        revalidatePath('/library');
+        revalidatePath('/stats');
+        return { success: true };
+    } catch (err: any) {
+        console.error('Unexpected upsert error:', err);
+        return { error: err.message || 'Server error' };
+    }
+}
+
+export async function removeUserMedia(id: string) {
+    const supabase = await createClient();
+    const { data: { user } } = await supabase.auth.getUser();
+
+    if (!user) {
+        return { error: 'Unauthorized' };
+    }
+
+    const { error } = await supabase
+        .from('user_media')
+        .delete()
+        .eq('id', id)
+        .eq('user_id', user.id);
+
+    if (error) {
+        console.error('Delete user media error:', error);
+        return { error: error.message };
     }
 
     revalidatePath('/');
@@ -77,22 +115,5 @@ export async function saveUserMedia(input: SaveMediaInput) {
     return { success: true };
 }
 
-export async function removeUserMedia(mediaId: string) {
-    const supabase = await createClient();
-    const { data: { user } } = await supabase.auth.getUser();
-
-    if (!user) throw new Error('Unauthorized');
-
-    const { error } = await supabase
-        .from('user_media')
-        .delete()
-        .eq('user_id', user.id)
-        .eq('media_id', mediaId);
-
-    if (error) throw new Error('Failed to remove item');
-
-    revalidatePath('/');
-    revalidatePath('/library');
-    revalidatePath('/stats');
-    return { success: true };
-}
+// Export alias for deleteUserMedia
+export const deleteUserMedia = removeUserMedia;

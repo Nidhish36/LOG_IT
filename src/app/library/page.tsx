@@ -2,6 +2,7 @@ import { createClient } from '@/lib/supabase/server';
 import { UserMediaRecord } from '@/types/media';
 import { MediaCard } from '@/components/media/MediaCard';
 import Link from 'next/link';
+
 export const dynamic = 'force-dynamic';
 
 export default async function LibraryPage({
@@ -19,10 +20,10 @@ export default async function LibraryPage({
 
     if (!user) {
         return (
-            <main className="flex min-h-[70vh] flex-col items-center justify-center p-6 text-center font-mono">
-                <h2 className="text-2xl font-bold mb-2">AUTH_REQUIRED</h2>
-                <p className="text-zinc-500 mb-6 text-sm">Please sign in to access your tracking database.</p>
-                <Link href="/auth/login" className="rounded-full bg-black text-white dark:bg-white dark:text-black px-6 py-2 text-xs font-bold uppercase tracking-wider">
+            <main className="flex min-h-[70vh] flex-col items-center justify-center p-6 text-center font-mono-sharp">
+                <h2 className="text-2xl font-black mb-2">AUTHENTICATION_REQUIRED</h2>
+                <p className="text-zinc-500 mb-6 text-xs">Please sign in to access your tracking database.</p>
+                <Link href="/auth/login" className="sharp-btn bg-black text-white dark:bg-white dark:text-black px-6 py-2 text-xs font-bold uppercase tracking-wider">
                     Sign In
                 </Link>
             </main>
@@ -73,18 +74,18 @@ export default async function LibraryPage({
         createdAt: item.created_at,
         updatedAt: item.updated_at,
         media: {
-            id: item.media.id,
-            externalId: item.media.external_id,
-            source: item.media.source,
-            type: item.media.type,
-            title: item.media.title,
-            posterUrl: item.media.poster_url,
-            backdropUrl: item.media.backdrop_url,
-            description: item.media.description,
-            releaseDate: item.media.release_date,
-            runtime: item.media.runtime || 0,
-            totalEpisodes: item.media.total_episodes,
-            genres: item.media.genres || [],
+            id: item.media?.id || '',
+            externalId: item.media?.external_id || '',
+            source: item.media?.source || 'omdb',
+            type: item.media?.type || 'movie',
+            title: item.media?.title || 'Untitled',
+            posterUrl: item.media?.poster_url || null,
+            backdropUrl: item.media?.backdrop_url || null,
+            description: item.media?.description || null,
+            releaseDate: item.media?.release_date || null,
+            runtime: item.media?.runtime || 0,
+            totalEpisodes: item.media?.total_episodes,
+            genres: item.media?.genres || [],
         },
     }));
 
@@ -102,26 +103,26 @@ export default async function LibraryPage({
     }
 
     return (
-        <main className="mx-auto max-w-7xl px-4 py-8 sm:px-6">
+        <main className="mx-auto max-w-7xl px-4 py-8 sm:px-6 font-mono-sharp">
             <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-8">
                 <div>
-                    <h1 className="font-dot text-2xl sm:text-3xl font-bold tracking-wider text-zinc-900 dark:text-white">
-                        YOUR LIBRARY
+                    <h1 className="text-2xl sm:text-3xl font-black tracking-tight text-black dark:text-white uppercase">
+                        {statusFilter === 'watchlist' ? 'Watchlist' : 'Your Library'}
                     </h1>
-                    <p className="text-xs font-mono text-zinc-500 mt-1">[{records.length} ITEMS_INDEXED]</p>
+                    <p className="text-xs text-zinc-500 mt-1">[{records.length} ITEMS_TRACKED]</p>
                 </div>
 
                 {/* Filter Navigation */}
-                <div className="flex flex-wrap gap-2 text-xs font-mono">
+                <div className="flex flex-wrap items-center gap-2 text-xs">
                     {/* Status */}
-                    <div className="flex rounded-full bg-black/5 dark:bg-zinc-900 border border-black/10 dark:border-white/10 p-1">
+                    <div className="flex border border-black/20 dark:border-white/20 bg-white dark:bg-black p-0.5">
                         {['all', 'watching', 'watched', 'watchlist'].map((s) => (
                             <Link
                                 key={s}
                                 href={`/library?type=${typeFilter}&status=${s}&sort=${sortBy}`}
-                                className={`rounded-full px-3 py-1 font-bold uppercase text-[10px] tracking-wider transition ${statusFilter === s
-                                    ? 'bg-black text-white dark:bg-white dark:text-black'
-                                    : 'text-zinc-500 hover:text-black dark:hover:text-white'
+                                className={`px-3 py-1 font-bold uppercase text-[10px] tracking-wider transition ${statusFilter === s
+                                        ? 'bg-black text-white dark:bg-white dark:text-black'
+                                        : 'text-zinc-500 hover:text-black dark:hover:text-white'
                                     }`}
                             >
                                 {s}
@@ -130,7 +131,7 @@ export default async function LibraryPage({
                     </div>
 
                     {/* Type */}
-                    <div className="flex rounded-full bg-black/5 dark:bg-zinc-900 border border-black/10 dark:border-white/10 p-1">
+                    <div className="flex border border-black/20 dark:border-white/20 bg-white dark:bg-black p-0.5">
                         {[
                             { id: 'all', label: 'ALL' },
                             { id: 'movie', label: 'MOVIES' },
@@ -140,9 +141,9 @@ export default async function LibraryPage({
                             <Link
                                 key={t.id}
                                 href={`/library?type=${t.id}&status=${statusFilter}&sort=${sortBy}`}
-                                className={`rounded-full px-3 py-1 font-bold uppercase text-[10px] tracking-wider transition ${typeFilter === t.id
-                                    ? 'bg-black text-white dark:bg-white dark:text-black'
-                                    : 'text-zinc-500 hover:text-black dark:hover:text-white'
+                                className={`px-3 py-1 font-bold uppercase text-[10px] tracking-wider transition ${typeFilter === t.id
+                                        ? 'bg-black text-white dark:bg-white dark:text-black'
+                                        : 'text-zinc-500 hover:text-black dark:hover:text-white'
                                     }`}
                             >
                                 {t.label}
@@ -152,15 +153,16 @@ export default async function LibraryPage({
                 </div>
             </div>
 
+            {/* Polaroid Gallery Grid */}
             {records.length > 0 ? (
-                <div className="grid grid-cols-2 gap-4 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6">
-                    {records.map((record) => (
-                        <MediaCard key={record.id} record={record} />
+                <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-6 sm:gap-8 pt-2">
+                    {records.map((record, idx) => (
+                        <MediaCard key={record.id} record={record} index={idx} />
                     ))}
                 </div>
             ) : (
-                <div className="rounded-2xl border border-dashed border-black/20 dark:border-white/20 p-12 text-center text-xs font-mono text-zinc-500">
-                    NO_MATCHING_RECORDS
+                <div className="border border-dashed border-black/20 dark:border-white/20 p-12 text-center text-xs text-zinc-500">
+                    [NO_MATCHING_RECORDS_IN_COLLECTION]
                 </div>
             )}
         </main>

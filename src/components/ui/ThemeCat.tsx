@@ -12,8 +12,10 @@ export function ThemeCat() {
         const savedTheme = (localStorage.getItem('logit-theme') as 'dark' | 'light') || 'dark';
         setTheme(savedTheme);
         if (savedTheme === 'light') {
+            document.documentElement.classList.remove('dark');
             document.documentElement.classList.add('light');
         } else {
+            document.documentElement.classList.add('dark');
             document.documentElement.classList.remove('light');
         }
     }, []);
@@ -24,8 +26,10 @@ export function ThemeCat() {
         localStorage.setItem('logit-theme', nextTheme);
 
         if (nextTheme === 'light') {
+            document.documentElement.classList.remove('dark');
             document.documentElement.classList.add('light');
         } else {
+            document.documentElement.classList.add('dark');
             document.documentElement.classList.remove('light');
         }
     };
@@ -60,8 +64,8 @@ export function ThemeCat() {
                     <img
                         src={
                             isDark
-                                ? 'https://media.giphy.com/media/v1.Y2lkPTc5MGI3NjExM3h2ZHBzZGk5b25sZHF0Zmticnp0ZzF3Nmt2N2FkOHRxb2d0bXhyOSZlcD12MV9pbnRlcm5hbF9naWZfYnlfaWQmY3Q9cw/MDJ9IbxxvDUQM/giphy.gif' // Cute sleeping white cat
-                                : 'https://media.giphy.com/media/v1.Y2lkPTc5MGI3NjExM3ZhcXkzbGJwMG0yOTgxcjI3bnpldGJjcGV4NmMydzE3MTR2cGhyayZlcD12MV9pbnRlcm5hbF9naWZfYnlfaWQmY3Q9cw/BzyTuYCmvSORqs1ABM/giphy.gif' // Cute black cat
+                                ? 'https://media.giphy.com/media/v1.Y2lkPTc5MGI3NjExM3h2ZHBzZGk5b25sZHF0Zmticnp0ZzF3Nmt2N2FkOHRxb2d0bXhyOSZlcD12MV9pbnRlcm5hbF9naWZfYnlfaWQmY3Q9cw/MDJ9IbxxvDUQM/giphy.gif'
+                                : 'https://media.giphy.com/media/v1.Y2lkPTc5MGI3NjExM3ZhcXkzbGJwMG0yOTgxcjI3bnpldGJjcGV4NmMydzE3MTR2cGhyayZlcD12MV9pbnRlcm5hbF9naWZfYnlfaWQmY3Q9cw/BzyTuYCmvSORqs1ABM/giphy.gif'
                         }
                         alt="Theme Cat"
                         className="h-full w-full object-contain filter contrast-125 group-hover:scale-110 transition-transform duration-200"

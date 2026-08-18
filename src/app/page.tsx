@@ -1,6 +1,8 @@
+import React from 'react';
 import { createClient } from '@/lib/supabase/server';
 import { UserMediaRecord } from '@/types/media';
 import { MediaCard } from '@/components/media/MediaCard';
+import { TrendingReel } from '@/components/home/TrendingReel';
 import Link from 'next/link';
 import { Film, Tv, Sparkles, Clock, Star, PlusCircle, ArrowUpRight } from 'lucide-react';
 
@@ -52,28 +54,6 @@ export default async function DashboardPage() {
         console.error('Dashboard load error:', err);
     }
 
-    if (!user) {
-        return (
-            <main className="flex min-h-[80vh] flex-col items-center justify-center p-6 text-center">
-                <div className="flex h-14 w-14 items-center justify-center border-2 border-black dark:border-white mb-4 shadow-[4px_4px_0px_0px_rgba(255,255,255,0.2)]">
-                    <Film className="h-6 w-6 text-black dark:text-white" />
-                </div>
-                <h1 className="font-mono-sharp text-4xl font-black tracking-tight mb-2 text-black dark:text-white">
-                    LOG_IT
-                </h1>
-                <p className="max-w-md text-sm text-zinc-500 mb-8">
-                    Personal high-contrast tracking engine for movies, series & anime.
-                </p>
-                <Link
-                    href="/auth/login"
-                    className="sharp-btn bg-black text-white dark:bg-white dark:text-black px-8 py-3 text-xs font-mono-sharp font-bold uppercase tracking-wider"
-                >
-                    Get Started [Sign In]
-                </Link>
-            </main>
-        );
-    }
-
     const records: UserMediaRecord[] = (rawUserMedia || []).map((item: any) => ({
         id: item.id,
         userId: item.user_id,
@@ -120,9 +100,12 @@ export default async function DashboardPage() {
         : '—';
 
     return (
-        <main className="mx-auto max-w-7xl px-4 py-8 sm:px-6">
+        <main className="mx-auto max-w-7xl px-4 py-6 sm:px-6">
+            {/* Live Popular & Trending Recommendations (Polaroid Grid) */}
+            <TrendingReel />
+
             {/* Interactive Rectangular Tiles */}
-            <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-6 mb-12">
+            <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-6 my-10">
                 <Link
                     href="/library?type=movie&status=watched"
                     className="sharp-card bg-white dark:bg-black p-4 flex flex-col justify-between group"
@@ -206,9 +189,9 @@ export default async function DashboardPage() {
                             View All ({watchingItems.length}) →
                         </Link>
                     </div>
-                    <div className="grid grid-cols-2 gap-4 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6">
-                        {watchingItems.slice(0, 6).map((record) => (
-                            <MediaCard key={record.id} record={record} />
+                    <div className="grid grid-cols-2 gap-4 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5">
+                        {watchingItems.slice(0, 5).map((record, idx) => (
+                            <MediaCard key={record.id} record={record} index={idx} />
                         ))}
                     </div>
                 </section>
@@ -228,9 +211,9 @@ export default async function DashboardPage() {
                     </Link>
                 </div>
                 {watchedItems.length > 0 ? (
-                    <div className="grid grid-cols-2 gap-4 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6">
-                        {watchedItems.slice(0, 6).map((record) => (
-                            <MediaCard key={record.id} record={record} />
+                    <div className="grid grid-cols-2 gap-4 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5">
+                        {watchedItems.slice(0, 5).map((record, idx) => (
+                            <MediaCard key={record.id} record={record} index={idx} />
                         ))}
                     </div>
                 ) : (
